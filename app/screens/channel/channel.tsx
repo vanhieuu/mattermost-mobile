@@ -104,7 +104,7 @@ const Channel = ({channelId, componentId, displayName, isOwnDirectMessage, membe
                 setShowToast(false);
             }
             clearTimeout(t);
-        }, 7000);
+        }, 3000);
     }, []);
 
     useEffect(() => {
@@ -116,9 +116,8 @@ const Channel = ({channelId, componentId, displayName, isOwnDirectMessage, membe
 
     useEffect(() => {
         const listener = DeviceEventEmitter.addListener(Events.POST_DRAFT_TOP, (postInputTop) => {
-            //fixme: for tablet offset of 35 is for mobile only
             const offset = 35;
-            bottom.value = postInputTop + offset;
+            bottom.value = isTablet ? postInputTop : postInputTop + offset;
         });
         return () => {
             listener.remove();
