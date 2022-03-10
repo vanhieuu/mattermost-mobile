@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {DeviceEventEmitter, Keyboard, Platform, View} from 'react-native';
+import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {Edge, SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import CompassIcon from '@components/compass_icon';
 import FreezeScreen from '@components/freeze_screen';
 import NavigationHeader from '@components/navigation_header';
 import PostDraft from '@components/post_draft';
-import {Navigation} from '@constants';
+import Toast from '@components/toast';
+import {Events, Navigation} from '@constants';
 import {ACCESSORIES_CONTAINER_NATIVE_ID} from '@constants/post_draft';
 import {useTheme} from '@context/theme';
 import {useAppState, useIsTablet} from '@hooks/device';
@@ -71,7 +73,9 @@ const Channel = ({channelId, componentId, displayName, isOwnDirectMessage, membe
         onPress: () => true,
         buttonType: 'opacity',
     }]), [channelId, isTablet, name]);
-
+    const mounted = useRef(false);
+    const [showToast, setShowToast] = useState<boolean|undefined>();
+    const bottom = useSharedValue(0);
     const leftComponent = useMemo(() => {
         if (isTablet || !channelId || !teamId) {
             return undefined;
@@ -92,6 +96,47 @@ const Channel = ({channelId, componentId, displayName, isOwnDirectMessage, membe
         Keyboard.dismiss();
         popTopScreen(componentId);
     }, []);
+
+    const onShowToast = useCallback(() => {
+        setShowToast(true);
+        const t = setTimeout(() => {
+            if (mounted.current) {
+                setShowToast(false);
+            }
+            clearTimeout(t);
+        }, 7000);
+    }, []);
+
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        const listener = DeviceEventEmitter.addListener(Events.POST_DRAFT_TOP, (postInputTop) => {
+            //fixme: for tablet offset of 35 is for mobile only
+            const offset = 35;
+            bottom.value = postInputTop + offset;
+        });
+        return () => {
+            listener.remove();
+        };
+    }, []);
+
+    useEffect(() => {
+        const listener = DeviceEventEmitter.addListener(Events.TOAST_POST_OPTIONS_PERMALINK_COPIED, onShowToast);
+        return () => {
+            listener.remove();
+        };
+    }, []);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        position: 'absolute',
+        bottom: bottom.value + 9,
+        opacity: withTiming(showToast ? 1 : 0, {duration: 300}),
+    }));
 
     const onTitlePress = useCallback(() => {
         // eslint-disable-next-line no-console
@@ -140,6 +185,12 @@ const Channel = ({channelId, componentId, displayName, isOwnDirectMessage, membe
                     />
                 </>
                 }
+                <Toast
+                    animatedStyle={animatedStyle}
+                    style={styles.toast}
+                    message={formatMessage({id: 'public_link_copied', defaultMessage: 'Link copied to clipboard'})}
+                    iconName='check'
+                />
             </SafeAreaView>
         </FreezeScreen>
     );

@@ -6,8 +6,9 @@ import {DeviceEventEmitter, Platform, View} from 'react-native';
 import {KeyboardTrackingView, KeyboardTrackingViewRef} from 'react-native-keyboard-tracking-view';
 
 import Autocomplete from '@components/autocomplete';
-import {PostDraft as PostDraftConstants, View as ViewConstants} from '@constants';
+import {Events, PostDraft as PostDraftConstants, View as ViewConstants} from '@constants';
 import {useIsTablet} from '@hooks/device';
+import useDidUpdate from '@hooks/did_update';
 
 import Archived from './archived';
 import DraftHandler from './draft_handler';
@@ -70,6 +71,10 @@ export default function PostDraft({
             }
         };
     }, [updateNativeScrollView]);
+
+    useDidUpdate(() => {
+        DeviceEventEmitter.emit(Events.POST_DRAFT_TOP, postInputTop);
+    }, [postInputTop]);
 
     if (channelIsArchived || deactivatedChannel) {
         const archivedTestID = `${testID}.archived`;

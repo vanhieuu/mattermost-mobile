@@ -3,8 +3,9 @@
 
 import Clipboard from '@react-native-community/clipboard';
 import React, {useCallback} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 
-import {Screens} from '@constants';
+import {Events, Screens} from '@constants';
 import {useServerUrl} from '@context/server';
 import {t} from '@i18n';
 import {dismissBottomSheet} from '@screens/navigation';
@@ -24,6 +25,7 @@ const CopyPermalinkOption = ({teamName, post}: Props) => {
         const permalink = `${serverUrl}/${teamName}/pl/${post.id}`;
         Clipboard.setString(permalink);
         dismissBottomSheet(Screens.POST_OPTIONS);
+        DeviceEventEmitter.emit(Events.TOAST_POST_OPTIONS_PERMALINK_COPIED);
     }, [teamName, post.id]);
 
     return (

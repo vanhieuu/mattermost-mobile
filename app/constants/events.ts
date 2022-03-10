@@ -21,4 +21,6 @@ export default keyMirror({
     USER_STOP_TYPING: null,
     POST_LIST_SCROLL_TO_BOTTOM: null,
     SWIPEABLE: null,
+    POST_DRAFT_TOP: null,
+    TOAST_POST_OPTIONS_PERMALINK_COPIED: null,
 });
