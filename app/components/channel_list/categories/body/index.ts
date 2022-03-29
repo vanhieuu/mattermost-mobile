@@ -99,9 +99,15 @@ const mapPrefName = (prefs: PreferenceModel[]) => of$(prefs.map((p) => p.name));
 
 const mapChannelIds = (channels: ChannelModel[]) => of$(channels.map((c) => c.id));
 
-type EnhanceProps = {category: CategoryModel; locale: string; currentUserId: string} & WithDatabaseArgs
+type EnhanceProps = {
+    category: CategoryModel;
+    locale: string;
+    currentUserId: string;
+    unreadsOnTop: boolean;
+    unreadChannelIds?: string[];
+} & WithDatabaseArgs
 
-const enhance = withObservables(['category'], ({category, locale, database, currentUserId}: EnhanceProps) => {
+const enhance = withObservables(['category'], ({category, locale, database, currentUserId, unreadsOnTop, unreadChannelIds}: EnhanceProps) => {
     const observedCategory = category.observe();
     const sortedChannels = observedCategory.pipe(
         switchMap((c) => getSortedChannels(database, c, locale)),
@@ -136,6 +142,14 @@ const enhance = withObservables(['category'], ({category, locale, database, curr
     const hiddenChannelIds = combineLatest([hiddenDmIds, hiddenGmIds]).pipe(switchMap(
         ([a, b]) => of$(new Set(a.concat(b))),
     ));
+
+    // if (unreadsOnTop) {
+    //     sortedIds = sortedIds.pipe(
+    //         switchMap((ids) => {
+    //             return of$(ids.filter((id) => unreadChannelIds?.includes(id)));
+    //         }),
+    //     );
+    // }
 
     return {
         limit,

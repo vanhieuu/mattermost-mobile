@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {FlatList, StyleSheet} from 'react-native';
 
 import CategoryBody from './body';
+import ChannelListItem from './body/channel';
 import LoadCategoriesError from './error';
 import CategoryHeader from './header';
 
@@ -13,6 +14,8 @@ import type CategoryModel from '@typings/database/models/servers/category';
 
 type Props = {
     categories: CategoryModel[];
+    unreadChannelIds?: string[];
+    unreadsOnTop: boolean;
     currentChannelId: string;
     currentUserId: string;
     currentTeamId: string;
@@ -26,7 +29,34 @@ const styles = StyleSheet.create({
 
 const extractKey = (item: CategoryModel) => item.id;
 
-const Categories = ({categories, currentChannelId, currentUserId, currentTeamId}: Props) => {
+const Unreads = ({unreadIds}: {unreadIds: string[]}) => {
+    const renderItem = ({item}: {item: string}) => {
+        return (
+            <ChannelListItem
+                channelId={item}
+                isActive={true}
+                collapsed={false}
+            />
+        );
+    };
+
+    return (
+        <FlatList
+            data={unreadIds}
+            renderItem={renderItem}
+            style={styles.flex}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            removeClippedSubviews={true}
+            initialNumToRender={5}
+            windowSize={15}
+            updateCellsBatchingPeriod={10}
+            maxToRenderPerBatch={5}
+        />
+    );
+};
+
+const Categories = ({categories, currentChannelId, currentUserId, currentTeamId, unreadChannelIds, unreadsOnTop}: Props) => {
     const intl = useIntl();
     const listRef = useRef<FlatList>(null);
 
@@ -39,6 +69,8 @@ const Categories = ({categories, currentChannelId, currentUserId, currentTeamId}
                     currentChannelId={currentChannelId}
                     currentUserId={currentUserId}
                     locale={intl.locale}
+                    unreadChannelIds={unreadChannelIds}
+                    unreadsOnTop={unreadsOnTop}
                 />
             </>
         );
@@ -56,20 +88,23 @@ const Categories = ({categories, currentChannelId, currentUserId, currentTeamId}
     }
 
     return (
-        <FlatList
-            data={categories}
-            ref={listRef}
-            renderItem={renderCategory}
-            style={styles.flex}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={extractKey}
-            removeClippedSubviews={true}
-            initialNumToRender={5}
-            windowSize={15}
-            updateCellsBatchingPeriod={10}
-            maxToRenderPerBatch={5}
-        />
+        <>
+            {unreadsOnTop && unreadChannelIds && <Unreads unreadIds={unreadChannelIds}/>}
+            <FlatList
+                data={categories}
+                ref={listRef}
+                renderItem={renderCategory}
+                style={styles.flex}
+                showsHorizontalScrollIndicator={false}
+                showsVerticalScrollIndicator={false}
+                keyExtractor={extractKey}
+                removeClippedSubviews={true}
+                initialNumToRender={5}
+                windowSize={15}
+                updateCellsBatchingPeriod={10}
+                maxToRenderPerBatch={5}
+            />
+        </>
     );
 };
 
