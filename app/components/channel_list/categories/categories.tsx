@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {FlatList, StyleSheet} from 'react-native';
+import {FlatList, StyleSheet, Text} from 'react-native';
 
 import CategoryBody from './body';
 import ChannelListItem from './body/channel';
@@ -11,10 +11,11 @@ import LoadCategoriesError from './error';
 import CategoryHeader from './header';
 
 import type CategoryModel from '@typings/database/models/servers/category';
+import type ChannelModel from '@typings/database/models/servers/channel';
 
 type Props = {
     categories: CategoryModel[];
-    unreadChannelIds?: string[];
+    unreadChannels: ChannelModel[];
     unreadsOnTop: boolean;
     currentChannelId: string;
     currentUserId: string;
@@ -23,17 +24,21 @@ type Props = {
 
 const styles = StyleSheet.create({
     flex: {
-        flex: 1,
+
+        // flex: 1,
+    },
+    unreadView: {
+        paddingVertical: 5,
     },
 });
 
 const extractKey = (item: CategoryModel) => item.id;
 
-const Unreads = ({unreadIds}: {unreadIds: string[]}) => {
-    const renderItem = ({item}: {item: string}) => {
+const Unreads = ({unreadChannels}: {unreadChannels: ChannelModel[]}) => {
+    const renderItem = ({item}: {item: ChannelModel}) => {
         return (
             <ChannelListItem
-                channelId={item}
+                channel={item}
                 isActive={true}
                 collapsed={false}
             />
@@ -42,23 +47,18 @@ const Unreads = ({unreadIds}: {unreadIds: string[]}) => {
 
     return (
         <FlatList
-            data={unreadIds}
+            data={unreadChannels}
             renderItem={renderItem}
-            style={styles.flex}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            removeClippedSubviews={true}
-            initialNumToRender={5}
-            windowSize={15}
-            updateCellsBatchingPeriod={10}
-            maxToRenderPerBatch={5}
+            style={styles.unreadView}
         />
     );
 };
 
-const Categories = ({categories, currentChannelId, currentUserId, currentTeamId, unreadChannelIds, unreadsOnTop}: Props) => {
+const Categories = ({categories, currentChannelId, currentUserId, currentTeamId, unreadChannels, unreadsOnTop}: Props) => {
     const intl = useIntl();
     const listRef = useRef<FlatList>(null);
+
+    const unreadChannelIds = useMemo(() => new Set(unreadChannels.map((myC) => myC.id)), [unreadChannels]);
 
     const renderCategory = useCallback((data: {item: CategoryModel}) => {
         return (
@@ -89,7 +89,7 @@ const Categories = ({categories, currentChannelId, currentUserId, currentTeamId,
 
     return (
         <>
-            {unreadsOnTop && unreadChannelIds && <Unreads unreadIds={unreadChannelIds}/>}
+            {unreadsOnTop && unreadChannelIds && <Unreads unreadChannels={unreadChannels}/>}
             <FlatList
                 data={categories}
                 ref={listRef}

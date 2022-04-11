@@ -5,7 +5,7 @@ import {Database} from '@nozbe/watermelondb';
 import {withDatabase} from '@nozbe/watermelondb/DatabaseProvider';
 import withObservables from '@nozbe/with-observables';
 import {combineLatest, of as of$} from 'rxjs';
-import {map, switchMap, concatAll} from 'rxjs/operators';
+import {combineLatestWith, map, switchMap, concatAll} from 'rxjs/operators';
 
 import {General, Preferences} from '@constants';
 import {DMS_CATEGORY} from '@constants/categories';
@@ -66,14 +66,14 @@ const observeSettings = (database: Database, channels: ChannelModel[]) => {
     return queryMyChannelSettingsByIds(database, ids).observeWithColumns(['notify_props']);
 };
 
-const getChannelsFromRelation = async (relations: CategoryChannelModel[] | MyChannelModel[]) => {
+export const getChannelsFromRelation = async (relations: CategoryChannelModel[] | MyChannelModel[]) => {
     return Promise.all(relations.map((r) => r.channel?.fetch()));
 };
 
-const getSortedChannels = (database: Database, category: CategoryModel, locale: string) => {
+const getSortedChannels = (database: Database, category: CategoryModel, unreadChannelIds: Set<string>, locale: string) => {
     switch (category.sorting) {
         case 'alpha': {
-            const channels = category.channels.observeWithColumns(['display_name']);
+            const channels = category.channels.observeWithColumns(['display_name']).pipe(map((cs) => cs.filter((c) => !unreadChannelIds.has(c.id))));
             const settings = channels.pipe(
                 switchMap((cs) => observeSettings(database, cs)),
             );
@@ -83,12 +83,14 @@ const getSortedChannels = (database: Database, category: CategoryModel, locale: 
         }
         case 'manual': {
             return category.categoryChannelsBySortOrder.observeWithColumns(['sort_order']).pipe(
+                map((cc) => cc.filter((c) => !unreadChannelIds.has(c.channelId))),
                 map(getChannelsFromRelation),
                 concatAll(),
             );
         }
         default:
             return category.myChannels.observeWithColumns(['last_post_at']).pipe(
+                map((myCs) => myCs.filter((myC) => !unreadChannelIds.has(myC.id))),
                 map(getChannelsFromRelation),
                 concatAll(),
             );
@@ -104,13 +106,13 @@ type EnhanceProps = {
     locale: string;
     currentUserId: string;
     unreadsOnTop: boolean;
-    unreadChannelIds?: string[];
+    unreadChannelIds: Set<string>;
 } & WithDatabaseArgs
 
-const enhance = withObservables(['category'], ({category, locale, database, currentUserId, unreadsOnTop, unreadChannelIds}: EnhanceProps) => {
+const enhance = withObservables(['category', 'unreadChannelIds'], ({category, locale, database, currentUserId, unreadsOnTop, unreadChannelIds}: EnhanceProps) => {
     const observedCategory = category.observe();
     const sortedChannels = observedCategory.pipe(
-        switchMap((c) => getSortedChannels(database, c, locale)),
+        switchMap((c) => getSortedChannels(database, c, unreadChannelIds, locale)),
     );
 
     const dmMap = (p: PreferenceModel) => getDirectChannelName(p.name, currentUserId);
@@ -142,14 +144,6 @@ const enhance = withObservables(['category'], ({category, locale, database, curr
     const hiddenChannelIds = combineLatest([hiddenDmIds, hiddenGmIds]).pipe(switchMap(
         ([a, b]) => of$(new Set(a.concat(b))),
     ));
-
-    // if (unreadsOnTop) {
-    //     sortedIds = sortedIds.pipe(
-    //         switchMap((ids) => {
-    //             return of$(ids.filter((id) => unreadChannelIds?.includes(id)));
-    //         }),
-    //     );
-    // }
 
     return {
         limit,
