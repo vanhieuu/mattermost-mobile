@@ -47,7 +47,7 @@ test:
   script:
     - npm run check
     - npm test
-    - bash script/precommit/i18n.sh
+    - bash scripts/precommit/i18n.sh
   retry:
     max: 2
     when:
