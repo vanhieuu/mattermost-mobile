@@ -9,6 +9,7 @@ stages:
 
 test:
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-webapp:20200524-node-16
+  stage: test
   variables:
     KUBERNETES_CPU_REQUEST: 3
     KUBERNETES_CPU_LIMIT: 5
