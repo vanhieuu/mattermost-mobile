@@ -41,9 +41,14 @@ test:
     paths:
       - dist
   before_script:
-    - npm ci --cache .npm --prefer-offline
+    - NODE_ENV=development npm ci --cache .npm --prefer-offline --ignore-scripts
+    - npx patch-package
     - node scripts/generate-assets.js
   script:
     - npm run check
     - npm test
     - bash script/precommit/i18n.sh
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
