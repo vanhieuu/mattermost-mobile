@@ -33,12 +33,12 @@ test:
     KUBERNETES_SERVICE_EPHEMERAL_STORAGE_LIMIT: 0
   cache:
   - key:
-      files: package-lock.json
-      paths:
-        - .npm/
+    files: package-lock.json
+    paths:
+      - .npm/
   - key: assets-cache-$CI_COMMIT_REF_SLUG
-      paths:
-        - dist
+    paths:
+      - dist
   before_script:
     - npm ci --cache .npm --prefer-offline
     - node scripts/generate-assets.js
