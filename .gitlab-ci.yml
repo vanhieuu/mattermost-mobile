@@ -7,7 +7,7 @@ stages:
   - test
   - build
 
-test:
+.test:
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-webapp:20200524-node-16
   stage: test
   variables:
