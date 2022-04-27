@@ -205,6 +205,10 @@ export default class ClientBase {
         return '/plugins/com.mattermost.apps';
     }
 
+    getCallsRoute() {
+        return '/plugins/com.mattermost.calls';
+    }
+
     doFetch = async (url: string, options: ClientOptions, returnDataOnly = true) => {
         let request;
         const method = options.method?.toLowerCase();

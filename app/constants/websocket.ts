@@ -49,5 +49,18 @@ const WebsocketEvents = {
     THREAD_FOLLOW_CHANGED: 'thread_follow_changed',
     THREAD_READ_CHANGED: 'thread_read_changed',
     APPS_FRAMEWORK_REFRESH_BINDINGS: 'custom_com.mattermost.apps_refresh_bindings',
+    CALLS_CHANNEL_ENABLED: 'custom_com.mattermost.calls_channel_enable_voice',
+    CALLS_CHANNEL_DISABLED: 'custom_com.mattermost.calls_channel_disable_voice',
+    CALLS_USER_CONNECTED: 'custom_com.mattermost.calls_user_connected',
+    CALLS_USER_DISCONNECTED: 'custom_com.mattermost.calls_user_disconnected',
+    CALLS_USER_MUTED: 'custom_com.mattermost.calls_user_muted',
+    CALLS_USER_UNMUTED: 'custom_com.mattermost.calls_user_unmuted',
+    CALLS_USER_VOICE_ON: 'custom_com.mattermost.calls_user_voice_on',
+    CALLS_USER_VOICE_OFF: 'custom_com.mattermost.calls_user_voice_off',
+    CALLS_CALL_START: 'custom_com.mattermost.calls_call_start',
+    CALLS_SCREEN_ON: 'custom_com.mattermost.calls_user_screen_on',
+    CALLS_SCREEN_OFF: 'custom_com.mattermost.calls_user_screen_off',
+    CALLS_USER_RAISE_HAND: 'custom_com.mattermost.calls_user_raise_hand',
+    CALLS_USER_UNRAISE_HAND: 'custom_com.mattermost.calls_user_unraise_hand',
 };
 export default WebsocketEvents;

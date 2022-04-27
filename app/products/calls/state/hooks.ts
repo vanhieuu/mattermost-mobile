@@ -6,23 +6,23 @@ import {BehaviorSubject} from 'rxjs';
 
 import {CallsState, DefaultCallsState} from '@app/products/calls/types/calls';
 
-// Only exported for tests, not exported outside this module.
-export let subject: BehaviorSubject<CallsState> | null = null;
+// Only exported for tests, not exported from the module index.
+export const subject = new BehaviorSubject(DefaultCallsState);
 
-// Only exported for tests, not exported outside this module.
+// Only exported for tests, not exported from the module index.
 export const setState = (state: CallsState) => {
-    subject?.next(state);
+    subject.next(state);
+};
+
+export const getState = () => {
+    return subject.value;
 };
 
 export const useCallsState = () => {
-    const [callsState, setCallsState] = useState({} as CallsState);
-
-    if (!subject) {
-        subject = new BehaviorSubject(DefaultCallsState);
-    }
+    const [callsState, setCallsState] = useState(DefaultCallsState);
 
     useEffect(() => {
-        const subscription = subject?.subscribe((state) => {
+        const subscription = subject.subscribe((state) => {
             setCallsState(state);
         });
 

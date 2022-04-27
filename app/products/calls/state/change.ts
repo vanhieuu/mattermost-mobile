@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {subject} from '@app/products/calls/state/hooks';
-import {Call, DefaultCallsState, ServerConfig} from '@app/products/calls/types/calls';
+import {Call, DefaultCallsState, ServerConfig} from '../types/calls';
+
+import {subject} from './hooks';
 
 export const setCalls = (calls: Dictionary<Call>, enabled: Dictionary<boolean>) => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, calls, enabled});
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, calls, enabled});
 };
 
-export const userJoinedCall = (channelId: string, userId: string, profile: UserProfile) => {
-    const callsState = subject?.value || DefaultCallsState;
+export const userJoinedCall = (channelId: string, userId: string) => {
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId]) {
         return;
     }
@@ -24,15 +25,14 @@ export const userJoinedCall = (channelId: string, userId: string, profile: UserP
         muted: true,
         isTalking: false,
         raisedHand: 0,
-        profile,
     };
     const nextCalls = {...callsState.calls, [channelId]: nextChannel};
 
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const userLeftCall = (channelId: string, userId: string) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId]?.participants[userId]) {
         return;
     }
@@ -49,35 +49,35 @@ export const userLeftCall = (channelId: string, userId: string) => {
         nextCalls[channelId] = nextChannel;
     }
 
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const myselfJoinedCall = (channelId: string) => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, joined: channelId, screenShareURL: ''});
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, joined: channelId, screenShareURL: ''});
 };
 
 export const myselfLeftCall = () => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, joined: '', screenShareURL: ''});
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, joined: '', screenShareURL: ''});
 };
 
 export const callStarted = (call: Call) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     const nextCalls = {...callsState.calls};
     nextCalls[call.channelId] = call;
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const callFinished = (call: Call) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     const nextCalls = {...callsState.calls};
     delete nextCalls[call.channelId];
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const setUserMuted = (channelId: string, userId: string, muted: boolean) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId] || !callsState.calls[channelId].participants[userId]) {
         return;
     }
@@ -90,11 +90,11 @@ export const setUserMuted = (channelId: string, userId: string, muted: boolean) 
     nextChannel.participants[userId] = nextUser;
     const nextCalls = {...callsState.calls};
     nextCalls[channelId] = nextChannel;
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const setRaisedHand = (channelId: string, userId: string, timestamp: number) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId] || !callsState.calls[channelId].participants[userId]) {
         return;
     }
@@ -107,11 +107,11 @@ export const setRaisedHand = (channelId: string, userId: string, timestamp: numb
     nextChannel.participants[userId] = nextUser;
     const nextCalls = {...callsState.calls};
     nextCalls[channelId] = nextChannel;
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const setCallScreenOn = (channelId: string, userId: string) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId] || !callsState.calls[channelId].participants[userId]) {
         return;
     }
@@ -119,11 +119,11 @@ export const setCallScreenOn = (channelId: string, userId: string) => {
     const nextChannel = {...callsState.calls[channelId], screenOn: userId};
     const nextCalls = {...callsState.calls};
     nextCalls[channelId] = nextChannel;
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const setCallScreenOff = (channelId: string) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     if (!callsState.calls[channelId]) {
         return;
     }
@@ -131,27 +131,27 @@ export const setCallScreenOff = (channelId: string) => {
     const nextChannel = {...callsState.calls[channelId], screenOn: ''};
     const nextCalls = {...callsState.calls};
     nextCalls[channelId] = nextChannel;
-    subject?.next({...callsState, calls: nextCalls});
+    subject.next({...callsState, calls: nextCalls});
 };
 
 export const setChannelEnabled = (channelId: string, enabled: boolean) => {
-    const callsState = subject?.value || DefaultCallsState;
+    const callsState = subject.value || DefaultCallsState;
     const nextEnabled = {...callsState.enabled};
     nextEnabled[channelId] = enabled;
-    subject?.next({...callsState, enabled: nextEnabled});
+    subject.next({...callsState, enabled: nextEnabled});
 };
 
 export const setScreenShareURL = (url: string) => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, screenShareURL: url});
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, screenShareURL: url});
 };
 
-export const setSpeakerPhoneOn = (speakerphoneOn: boolean) => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, speakerphoneOn});
+export const setSpeakerPhone = (speakerphoneOn: boolean) => {
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, speakerphoneOn});
 };
 
 export const setConfig = (config: ServerConfig) => {
-    const callsState = subject?.value || DefaultCallsState;
-    subject?.next({...callsState, config});
+    const callsState = subject.value || DefaultCallsState;
+    subject.next({...callsState, config});
 };

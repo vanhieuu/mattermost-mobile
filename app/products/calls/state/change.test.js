@@ -20,7 +20,7 @@ import {
     myselfLeftCall,
     setChannelEnabled,
     setScreenShareURL,
-    setSpeakerPhoneOn,
+    setSpeakerPhone,
     setConfig,
 } from '../state';
 import {DefaultCallsState} from '../types/calls';
@@ -465,11 +465,11 @@ describe('useCallsState', () => {
 
         // test
         act(() => {
-            setSpeakerPhoneOn(true);
+            setSpeakerPhone(true);
         });
         assert.deepEqual(result.current.speakerphoneOn, true);
         act(() => {
-            setSpeakerPhoneOn(false);
+            setSpeakerPhone(false);
         });
         assert.deepEqual(result.current.speakerphoneOn, false);
         assert.deepEqual(result.current, DefaultCallsState);

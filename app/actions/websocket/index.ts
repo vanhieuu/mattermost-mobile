@@ -10,6 +10,16 @@ import {fetchConfigAndLicense} from '@actions/remote/systems';
 import {fetchAllTeams, fetchTeamsChannelsAndUnreadPosts} from '@actions/remote/team';
 import {fetchNewThreads} from '@actions/remote/thread';
 import {fetchStatusByIds, updateAllUsersSince} from '@actions/remote/user';
+import {loadCalls, loadConfig} from '@app/products/calls/actions';
+import {
+    handleCallChannelDisabled,
+    handleCallChannelEnabled, handleCallScreenOff, handleCallScreenOn, handleCallStarted,
+    handleCallUserConnected,
+    handleCallUserDisconnected,
+    handleCallUserMuted, handleCallUserRaiseHand,
+    handleCallUserUnmuted, handleCallUserUnraiseHand, handleCallUserVoiceOff, handleCallUserVoiceOn,
+} from '@app/products/calls/connection/websocket_event_handlers';
+import {isSupportedServerCalls} from '@app/products/calls/utils';
 import {Screens, WebsocketEvents} from '@constants';
 import {SYSTEM_IDENTIFIERS} from '@constants/database';
 import DatabaseManager from '@database/manager';
@@ -62,6 +72,11 @@ export async function handleFirstConnect(serverUrl: string) {
     alreadyConnected.add(serverUrl);
     resetWebSocketLastDisconnected(operator);
     fetchStatusByIds(serverUrl, ['me']);
+
+    if (isSupportedServerCalls(config)) {
+        loadConfig(serverUrl, true);
+        loadCalls(serverUrl);
+    }
 }
 
 export function handleReconnect(serverUrl: string) {
@@ -183,6 +198,11 @@ async function doReconnect(serverUrl: string) {
                 console.log('FAILED TO BATCH WS reconnection');
             }
         }
+    }
+
+    if (isSupportedServerCalls(config)) {
+        loadConfig(serverUrl, true);
+        loadCalls(serverUrl);
     }
 
     const currentChannelId = await getCurrentChannelId(database);
@@ -386,6 +406,49 @@ export async function handleEvent(serverUrl: string, msg: WebSocketMessage) {
         case WebsocketEvents.APPS_FRAMEWORK_REFRESH_BINDINGS:
             break;
 
-        // return dispatch(handleRefreshAppsBindings());
+            // return dispatch(handleRefreshAppsBindings());
+
+        // Calls ws events:
+        case WebsocketEvents.CALLS_CHANNEL_ENABLED:
+            return handleCallChannelEnabled(msg);
+            break;
+        case WebsocketEvents.CALLS_CHANNEL_DISABLED:
+            return handleCallChannelDisabled(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_CONNECTED:
+            handleCallUserConnected(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_DISCONNECTED:
+            return handleCallUserDisconnected(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_MUTED:
+            return handleCallUserMuted(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_UNMUTED:
+            return handleCallUserUnmuted(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_VOICE_ON:
+            handleCallUserVoiceOn(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_VOICE_OFF:
+            handleCallUserVoiceOff(msg);
+            break;
+        case WebsocketEvents.CALLS_CALL_START:
+            return handleCallStarted(msg);
+            break;
+        case WebsocketEvents.CALLS_SCREEN_ON:
+            return handleCallScreenOn(msg);
+            break;
+        case WebsocketEvents.CALLS_SCREEN_OFF:
+            return handleCallScreenOff(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_RAISE_HAND:
+            return handleCallUserRaiseHand(msg);
+            break;
+        case WebsocketEvents.CALLS_USER_UNRAISE_HAND:
+            return handleCallUserUnraiseHand(msg);
+            break;
     }
+
+    return {};
 }

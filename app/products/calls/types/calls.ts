@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserModel} from '@app/database/models/server';
+
 export type CallsState = {
     calls: Dictionary<Call>;
     enabled: Dictionary<boolean>;
@@ -24,13 +26,13 @@ export type CallParticipant = {
     muted: boolean;
     isTalking: boolean;
     raisedHand: number;
-    profile: UserProfile;
+    userModel?: UserModel;
 }
 
 export type ServerChannelState = {
     channel_id: string;
     enabled: boolean;
-    call: ServerCallState;
+    call?: ServerCallState;
 }
 
 export type ServerUserState = {
@@ -74,3 +76,12 @@ export const DefaultCallsState = {
     speakerphoneOn: false,
     config: DefaultServerConfig,
 } as CallsState;
+
+export type CallsConnection = {
+    disconnect: () => void;
+    mute: () => void;
+    unmute: () => void;
+    waitForReady: () => Promise<void>;
+    raiseHand: () => void;
+    unraiseHand: () => void;
+}
