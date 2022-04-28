@@ -8,6 +8,8 @@ import {Keyboard, Platform, StyleProp, View, ViewStyle, TouchableHighlight} from
 import {removePost} from '@actions/local/post';
 import {showPermalink} from '@actions/remote/permalink';
 import {fetchAndSwitchToThread} from '@actions/remote/thread';
+import CallsCustomMessage from '@app/products/calls/components/calls_custom_message';
+import {isCallsCustomMessage} from '@app/products/calls/utils';
 import SystemAvatar from '@components/system_avatar';
 import SystemHeader from '@components/system_header';
 import * as Screens from '@constants/screens';
@@ -115,6 +117,8 @@ const Post = ({
     const isAutoResponder = fromAutoResponder(post);
     const isPendingOrFailed = isPostPendingOrFailed(post);
     const isSystemPost = isSystemMessage(post);
+    const isCallsPost = isCallsCustomMessage(post);
+    const isDeleted = (post.deleteAt !== 0);
     const isWebHook = isFromWebhook(post);
     const hasSameRoot = useMemo(() => {
         if (isFirstReply) {
@@ -161,8 +165,7 @@ const Post = ({
             return;
         }
 
-        const hasBeenDeleted = (post.deleteAt !== 0);
-        if (isSystemPost && (!canDelete || hasBeenDeleted)) {
+        if (isSystemPost && (!canDelete || isDeleted)) {
             return;
         }
 
@@ -245,6 +248,12 @@ const Post = ({
     if (isSystemPost && !isEphemeral && !isAutoResponder) {
         body = (
             <SystemMessage
+                post={post}
+            />
+        );
+    } else if (isCallsPost && !isDeleted) {
+        body = (
+            <CallsCustomMessage
                 post={post}
             />
         );
